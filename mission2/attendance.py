@@ -1,50 +1,132 @@
 from abc import ABC
 
-player_attendance = {}
-
 class Action(ABC):
-    def add_point(self):
+    def __init__(self):
+        self.attendance_point = 0
+        self.weekend_count = 0
+        self.wednesday_count = 0
+
+    def add_attendance_point(self, point):
+        pass
+
+    def add_wednesday_attendance_count(self, count):
+        pass
+
+    def add_weekend_attendance_count(self, count):
         pass
 
 class WednesdayAction(Action):
-    def add_point(self):
-        return 3
+    def __init__(self):
+        super().__init__()
+        self.attendance_point = 3
+        self.weekend_count = 0
+        self.wednesday_count = 1
+
+    def add_attendance_point(self, point):
+        return point + self.attendance_point
+
+    def add_wednesday_attendance_count(self, count):
+        return count + self.wednesday_count
+
+    def add_weekend_attendance_count(self, count):
+        return count + self.weekend_count
 
 
+class WeekendAction(Action):
+    def __init__(self):
+        super().__init__()
+        self.attendance_point = 2
+        self.weekend_count = 1
+        self.wednesday_count = 0
 
-class PlayerABC(ABC):
-    def __init__(self, player_name, player_id):
-        self.player_name = player_name
-        self.player_id = player_id
-        self.grade = "NORMAL"
-        self.wednesday_attendance_count = 0
-        self.weekend_attendance_count = 0
-        self.attendance_point = 0
+    def add_attendance_point(self, point):
+        return point + self.attendance_point
 
-    def get_grade(self):
+    def add_wednesday_attendance_count(self, count):
+        return count + self.wednesday_count
+
+    def add_weekend_attendance_count(self, count):
+        return count + self.weekend_count
+
+
+class NormalAction(Action):
+    def __init__(self):
+        super().__init__()
+        self.attendance_point = 1
+        self.weekend_count = 0
+        self.wednesday_count = 0
+
+    def add_attendance_point(self, point):
+        return point + self.attendance_point
+
+    def add_wednesday_attendance_count(self, count):
+        return count + self.wednesday_count
+
+    def add_weekend_attendance_count(self, count):
+        return count + self.weekend_count
+
+
+class Grade(ABC):
+
+    def get_grade_str(self):
         pass
 
-class GoldPlayer(PlayerABC):
-    def get_grade(self):
+
+class GoldGrade(Grade):
+    def get_grade_str(self):
         return "GOLD"
 
-class SilverPlayer(PlayerABC):
-    def get_grade(self):
+
+class SilverGrade(Grade):
+    def get_grade_str(self):
         return "SILVER"
 
 
-class NormalPlayer(PlayerABC):
+class NormalGrade(Grade):
+    def get_grade_str(self):
+        return "NORMAL"
+
+
+class NormalPlayer():
+    def __init__(self, player_name, player_id):
+        self.player_name = player_name
+        self.player_id = player_id
+        self.wednesday_attendance_count = 0
+        self.weekend_attendance_count = 0
+        self.attendance_point = 0
+        self.add_action = NormalAction()
+        self.grade_class = NormalGrade()
+        self.gold_grade_cut = 50
+        self.silver_grade_cut = 30
+
+    def set_action(self, weekday):
+        if (weekday == "wednesday"):
+            self.add_action = WednesdayAction()
+        elif (weekday in ["saturday", "sunday"]):
+            self.add_action = WeekendAction()
+        else:
+            self.add_action = NormalAction()
+
+    def set_grade(self):
+        if self.attendance_point >= self.gold_grade_cut:
+            self.grade_class = GoldGrade()
+        elif self.attendance_point >= self.silver_grade_cut:
+            self.grade_class = SilverGrade()
+        else:
+            self.grade_class = NormalGrade()
+
     def get_grade(self):
-        return "Normal"
+        return self.grade_class.get_grade_str()
+
+    def attendance_action(self, weekday):
+        self.set_action(weekday)
+        self.attendance_point = self.add_action.add_attendance_point(self.attendance_point)
+        self.weekend_attendance_count = self.add_action.add_weekend_attendance_count(self.weekend_attendance_count)
+        self.wednesday_attendance_count = self.add_action.add_wednesday_attendance_count(self.wednesday_attendance_count)
 
 
 class AttendanceManager():
     def __init__(self):
-        self.player_name_id_map = {}
-        self.attendance_points = {}
-        self.player_grade = {}
-        self.wednesday_attendance_count = {}
-        self.weekend_attendance_count = {}
         self.player_attendance = {}
 
     def run_attendance_check(self, file_name: str):
@@ -69,22 +151,9 @@ class AttendanceManager():
             raise FileNotFoundError("파일을 찾을 수 없습니다.")
 
     def record_player_attendance(self, player_name: str, attendance_weekday: str):
-        NORMAL_POINT = 1
-        WEEKEND_POINT = 2
-        WEDNESDAY_POINT = 3
-        WEEKEND = ["saturday", "sunday"]
-
         if player_name not in self.player_attendance.keys():
             self.init_player(player_name)
-
-        if attendance_weekday in WEEKEND:
-            self.player_attendance[player_name].attendance_point += WEEKEND_POINT
-            self.player_attendance[player_name].weekend_attendance_count += 1
-        elif attendance_weekday == "wednesday":
-            self.player_attendance[player_name].attendance_point += WEDNESDAY_POINT
-            self.player_attendance[player_name].wednesday_attendance_count += 1
-        else:
-            self.player_attendance[player_name].attendance_point += NORMAL_POINT
+        self.player_attendance[player_name].attendance_action(attendance_weekday)
 
     def init_player(self, player_name):
         self.player_attendance[player_name] = NormalPlayer(player_name, self.get_player_id())
@@ -110,24 +179,17 @@ class AttendanceManager():
         print("\nRemoved player")
         print("==============")
         for player_name in self.player_attendance.keys():
-            if (self.player_attendance[player_name].grade == "NORMAL"
+            if (self.player_attendance[player_name].grade_class.get_grade_str() == "NORMAL"
                     and self.player_attendance[player_name].wednesday_attendance_count == 0
                     and self.player_attendance[player_name].weekend_attendance_count == 0):
                 print(player_name)
 
     def grade_player(self):
-        GOLD_GRADE_POINT_CUT = 50
-        SILVER_GRADE_POINT_CUT = 30
         for player_name in self.player_attendance.keys():
-            if self.player_attendance[player_name].attendance_point >= GOLD_GRADE_POINT_CUT:
-                self.player_attendance[player_name].grade = "GOLD"
-            elif self.player_attendance[player_name].attendance_point >= SILVER_GRADE_POINT_CUT:
-                self.player_attendance[player_name].grade = "SILVER"
-            else:
-                self.player_attendance[player_name].grade = "NORMAL"
+            self.player_attendance[player_name].set_grade()
             print(
-                f"NAME : {player_name}, POINT : {self.player_attendance[player_name].attendance_point}, GRADE : {self.player_attendance[player_name].grade}")
+                f"NAME : {player_name}, POINT : {self.player_attendance[player_name].attendance_point}, GRADE : {self.player_attendance[player_name].get_grade()}")
 
 if __name__ == "__main__":
     test_env = AttendanceManager()
-    test_env.run_attendance_check("attendance_weekday_500.txt")
+    test_env.run_attendance_check("./attendance_weekday_500.txt")

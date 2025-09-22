@@ -30,7 +30,7 @@ def test_init_player(default_test_env):
     assert test_env.player_attendance[player_name].attendance_point == 0
     assert test_env.player_attendance[player_name].weekend_attendance_count == 0
     assert test_env.player_attendance[player_name].wednesday_attendance_count == 0
-    assert test_env.player_attendance[player_name].grade == "NORMAL"
+    assert test_env.player_attendance[player_name].grade_class.get_grade_str() == "NORMAL"
 
 
 def test_get_player_id(default_test_env):
@@ -119,7 +119,7 @@ def test_gold_grade_player(default_test_env, capsys):
     for _ in range(20):
         test_env.record_player_attendance(player_name, attendance_day)
     test_env.grade_player()
-    assert test_env.player_attendance[player_name].grade == "GOLD"
+    assert test_env.player_attendance[player_name].grade_class.get_grade_str() == "GOLD"
     assert capsys.readouterr().out == f"NAME : {player_name}, POINT : 60, GRADE : GOLD\n"
 
 
@@ -130,7 +130,7 @@ def test_silver_grade_player(default_test_env, capsys):
     for _ in range(10):
         test_env.record_player_attendance(player_name, attendance_day)
     test_env.grade_player()
-    assert test_env.player_attendance[player_name].grade == "SILVER"
+    assert test_env.player_attendance[player_name].grade_class.get_grade_str() == "SILVER"
     assert capsys.readouterr().out == f"NAME : {player_name}, POINT : 30, GRADE : SILVER\n"
 
 
@@ -141,7 +141,7 @@ def test_normal_grade_player(default_test_env, capsys):
     for _ in range(1):
         test_env.record_player_attendance(player_name, attendance_day)
     test_env.grade_player()
-    assert test_env.player_attendance[player_name].grade == "NORMAL"
+    assert test_env.player_attendance[player_name].grade_class.get_grade_str() == "NORMAL"
     assert capsys.readouterr().out == f"NAME : {player_name}, POINT : 3, GRADE : NORMAL\n"
 
 
