@@ -76,22 +76,24 @@ def check_removed_player():
     print("\nRemoved player")
     print("==============")
     for player_name in player_name_id_map.keys():
-        if wednesday_attendance_count[player_name] == 0 and weekend_attendance_count[player_name] == 0:
+        if (player_grade[player_name] == "NORMAL"
+                and wednesday_attendance_count[player_name] == 0
+                and weekend_attendance_count[player_name] == 0):
             print(player_name)
 
 
 def grade_player():
     GOLD_GRADE_POINT_CUT = 50
     SILVER_GRADE_POINT_CUT = 30
-    for user_name in player_name_id_map.keys():
-        if attendance_points[user_name] >= GOLD_GRADE_POINT_CUT:
-            player_grade[user_name] = "GOLD"
-        elif attendance_points[user_name] >= SILVER_GRADE_POINT_CUT:
-            player_grade[user_name] = "SILVER"
+    for player_name in player_name_id_map.keys():
+        if attendance_points[player_name] >= GOLD_GRADE_POINT_CUT:
+            player_grade[player_name] = "GOLD"
+        elif attendance_points[player_name] >= SILVER_GRADE_POINT_CUT:
+            player_grade[player_name] = "SILVER"
         else:
-            player_grade[user_name] = "NORMAL"
+            player_grade[player_name] = "NORMAL"
 
-        print(f"NAME : {user_name}, POINT : {attendance_points[user_name]}, GRADE : {player_grade[user_name]}")
+        print(f"NAME : {player_name}, POINT : {attendance_points[player_name]}, GRADE : {player_grade[player_name]}")
 
 
 if __name__ == "__main__":
