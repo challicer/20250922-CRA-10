@@ -1,38 +1,46 @@
-user_attendance_data = {}
-id_cnt = 0
-
+player_name_id_map = {}
 points = {}
 grade = {}
-names = {}
-wed = {}
-weeken = {}
+wednesday_count = {}
+weekend_count = {}
 
-def input2(user_name, weekday):
-    global id_cnt
 
-    if user_name not in user_attendance_data:
-        id_cnt += 1
-        user_attendance_data[user_name] = id_cnt
-        points[user_name] = 0
-        grade[user_name] = 0
-        wed[user_name] = 0
-        weeken[user_name] = 0
-
-    add_point = 0
+def record_player_attendance(player_name: str, weekday: str):
+    NORMAL_POINT = 1
+    WEEKEND_POINT = 2
+    WEDNESDAY_POINT = 3
     WEEKEND = ["saturday", "sunday"]
 
+    if player_name not in player_name_id_map:
+        init_player(player_name)
+
     if weekday in WEEKEND:
-        add_point += 2
-        weeken[user_name] += 1
+        points[player_name] += WEEKEND_POINT
+        weekend_count[player_name] += 1
     elif weekday == "wednesday":
-        add_point += 3
-        wed[user_name] += 1
+        points[player_name] += WEDNESDAY_POINT
+        wednesday_count[player_name] += 1
     else:
-        add_point += 1
-    points[user_name] += add_point
+        points[player_name] += NORMAL_POINT
 
 
-def read_raw_text(file_name: str):
+def init_player(player_name):
+    player_name_id_map[player_name] = get_next_id()
+    points[player_name] = 0
+    grade[player_name] = 0
+    wednesday_count[player_name] = 0
+    weekend_count[player_name] = 0
+
+
+def get_next_id():
+    if len(player_name_id_map):
+        max_id = max([player_id for player_id in player_name_id_map.values()]) + 1
+    else:
+        max_id = 0
+    return max_id
+
+
+def read_text_file(file_name: str):
     try:
         with open(file_name, encoding='utf-8') as f:
             lines = f.readlines()
@@ -40,41 +48,50 @@ def read_raw_text(file_name: str):
     except FileNotFoundError:
         print("파일을 찾을 수 없습니다.")
 
+
 def run_attendance_check(file_name: str):
-    user_attendance_raw_data = read_raw_text(file_name)
+    user_attendance_raw_data = read_text_file(file_name)
     for user_data in user_attendance_raw_data:
         if len(user_data) != 2:
             continue
-        [user_name, weekday] = user_data
-        input2(user_name, weekday)
+        [player_name, weekday] = user_data
+        record_player_attendance(player_name, weekday)
 
-    for user_name, data in user_attendance_data.items():
-        if wed[user_name] > 9:
-            points[user_name] += 10
-        if weeken[user_name] > 9:
-            points[user_name] += 10
+    check_bonus_day_count()
+    grade_player()
+    check_removed_player()
 
-    for user_name, data in user_attendance_data.items():
-        if points[user_name] >= 50:
-            grade[user_name] = 1
-        elif points[user_name] >= 30:
-            grade[user_name] = 2
-        else:
-            grade[user_name] = 0
 
-        print(f"NAME : {user_name}, POINT : {points[user_name]}, GRADE : ", end="")
-        if grade[user_name] == 1:
-            print("GOLD")
-        elif grade[user_name] == 2:
-            print("SILVER")
-        else:
-            print("NORMAL")
-
+def check_removed_player():
     print("\nRemoved player")
     print("==============")
-    for user_name, data in user_attendance_data.items():
-        if grade[user_name] not in (1, 2) and wed[user_name] == 0 and weeken[user_name] == 0:
-            print(user_name)
+    for player_name in player_name_id_map.keys():
+        if wednesday_count[player_name] == 0 and weekend_count[player_name] == 0:
+            print(player_name)
+
+
+def grade_player():
+    GOLD_GRADE_POINT_CUT = 50
+    SILVER_GRADE_POINT_CUT = 30
+    for user_name in player_name_id_map.keys():
+        if points[user_name] >= GOLD_GRADE_POINT_CUT:
+            grade[user_name] = "GOLD"
+        elif points[user_name] >= SILVER_GRADE_POINT_CUT:
+            grade[user_name] = "SILVER"
+        else:
+            grade[user_name] = "NORMAL"
+
+        print(f"NAME : {user_name}, POINT : {points[user_name]}, GRADE : {grade[user_name]}")
+
+
+def check_bonus_day_count():
+    BONUS_MIN_DAYS = 10
+    BONUS_POINT = 10
+    for player_name in player_name_id_map.keys():
+        if wednesday_count[player_name] >= BONUS_MIN_DAYS:
+            points[player_name] += BONUS_POINT
+        if weekend_count[player_name] >= BONUS_MIN_DAYS:
+            points[player_name] += BONUS_POINT
 
 
 if __name__ == "__main__":
