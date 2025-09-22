@@ -1,4 +1,4 @@
-id1 = {}
+user_attendance_data = {}
 id_cnt = 0
 
 # dat[사용자ID][요일]
@@ -9,40 +9,40 @@ names = [''] * 100
 wed = [0] * 100
 weeken = [0] * 100
 
-def input2(w, wk):
+def input2(user_name, weekday):
     global id_cnt
 
-    if w not in id1:
+    if user_name not in user_attendance_data:
         id_cnt += 1
-        id1[w] = id_cnt
-        names[id_cnt] = w
+        user_attendance_data[user_name] = id_cnt
+        names[id_cnt] = user_name
 
-    id2 = id1[w]
+    id2 = user_attendance_data[user_name]
 
     add_point = 0
     index = 0
 
-    if wk == "monday":
+    if weekday == "monday":
         index = 0
         add_point += 1
-    elif wk == "tuesday":
+    elif weekday == "tuesday":
         index = 1
         add_point += 1
-    elif wk == "wednesday":
+    elif weekday == "wednesday":
         index = 2
         add_point += 3
         wed[id2] += 1
-    elif wk == "thursday":
+    elif weekday == "thursday":
         index = 3
         add_point += 1
-    elif wk == "friday":
+    elif weekday == "friday":
         index = 4
         add_point += 1
-    elif wk == "saturday":
+    elif weekday == "saturday":
         index = 5
         add_point += 2
         weeken[id2] += 1
-    elif wk == "sunday":
+    elif weekday == "sunday":
         index = 6
         add_point += 2
         weeken[id2] += 1
@@ -50,45 +50,49 @@ def input2(w, wk):
     dat[id2][index] += 1
     points[id2] += add_point
 
-def input_file():
+
+def read_raw_text(file_name:str):
     try:
-        with open("attendance_weekday_500.txt", encoding='utf-8') as f:
+        with open(file_name, encoding='utf-8') as f:
             lines = f.readlines()
-            user_attendance_data = [line.strip().split() for line in lines]
-            for user_data in user_attendance_data:
-                if len(user_data) != 2:
-                    continue
-                input2(user_data[0], user_data[1])
-
-        for i in range(1, id_cnt + 1):
-            if dat[i][2] > 9:
-                points[i] += 10
-            if dat[i][5] + dat[i][6] > 9:
-                points[i] += 10
-
-            if points[i] >= 50:
-                grade[i] = 1
-            elif points[i] >= 30:
-                grade[i] = 2
-            else:
-                grade[i] = 0
-
-            print(f"NAME : {names[i]}, POINT : {points[i]}, GRADE : ", end="")
-            if grade[i] == 1:
-                print("GOLD")
-            elif grade[i] == 2:
-                print("SILVER")
-            else:
-                print("NORMAL")
-
-        print("\nRemoved player")
-        print("==============")
-        for i in range(1, id_cnt + 1):
-            if grade[i] not in (1, 2) and wed[i] == 0 and weeken[i] == 0:
-                print(names[i])
-
+            return [line.strip().split() for line in lines]
     except FileNotFoundError:
         print("파일을 찾을 수 없습니다.")
 
+def input_file(file_name: str):
+    user_attendance_raw_data = read_raw_text(file_name)
+    for user_data in user_attendance_raw_data:
+        if len(user_data) != 2:
+            continue
+        input2(user_data[0], user_data[1])
+
+    for i in range(1, id_cnt + 1):
+        if dat[i][2] > 9:
+            points[i] += 10
+        if dat[i][5] + dat[i][6] > 9:
+            points[i] += 10
+
+        if points[i] >= 50:
+            grade[i] = 1
+        elif points[i] >= 30:
+            grade[i] = 2
+        else:
+            grade[i] = 0
+
+        print(f"NAME : {names[i]}, POINT : {points[i]}, GRADE : ", end="")
+        if grade[i] == 1:
+            print("GOLD")
+        elif grade[i] == 2:
+            print("SILVER")
+        else:
+            print("NORMAL")
+
+    print("\nRemoved player")
+    print("==============")
+    for i in range(1, id_cnt + 1):
+        if grade[i] not in (1, 2) and wed[i] == 0 and weeken[i] == 0:
+            print(names[i])
+
+
 if __name__ == "__main__":
-    input_file()
+    input_file("attendance_weekday_500.txt")
