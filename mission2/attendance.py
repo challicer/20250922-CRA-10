@@ -1,3 +1,4 @@
+import abc
 from abc import ABC
 
 class Action(ABC):
@@ -6,12 +7,16 @@ class Action(ABC):
         self.weekend_count = 0
         self.wednesday_count = 0
 
+    @abc.abstractmethod
     def add_attendance_point(self, point):
         pass
 
+    @abc.abstractmethod
     def add_wednesday_attendance_count(self, count):
         pass
 
+
+    @abc.abstractmethod
     def add_weekend_attendance_count(self, count):
         pass
 
@@ -68,6 +73,7 @@ class NormalAction(Action):
 
 class Grade(ABC):
 
+    @abc.abstractmethod
     def get_grade_str(self):
         pass
 
@@ -98,6 +104,8 @@ class NormalPlayer():
         self.grade_class = NormalGrade()
         self.gold_grade_cut = 50
         self.silver_grade_cut = 30
+        self.BONUS_MIN_DAYS = 10
+        self.BONUS_POINT = 10
 
     def set_action(self, weekday):
         if (weekday == "wednesday"):
@@ -123,6 +131,20 @@ class NormalPlayer():
         self.attendance_point = self.add_action.add_attendance_point(self.attendance_point)
         self.weekend_attendance_count = self.add_action.add_weekend_attendance_count(self.weekend_attendance_count)
         self.wednesday_attendance_count = self.add_action.add_wednesday_attendance_count(self.wednesday_attendance_count)
+
+    def get_bonus_score(self):
+        if self.wednesday_attendance_count >= self.BONUS_MIN_DAYS:
+            self.attendance_point += self.BONUS_POINT
+        if self.weekend_attendance_count >= self.BONUS_MIN_DAYS:
+            self.attendance_point += self.BONUS_POINT
+
+    def check_removed_player(self):
+        if (self.grade_class.get_grade_str() == "NORMAL"
+                and self.wednesday_attendance_count == 0
+                and self.weekend_attendance_count == 0):
+            return self.player_name
+        else:
+            return ""
 
 
 class AttendanceManager():
@@ -160,13 +182,8 @@ class AttendanceManager():
 
 
     def check_bonus_day_count(self):
-        BONUS_MIN_DAYS = 10
-        BONUS_POINT = 10
         for player_name in self.player_attendance.keys():
-            if self.player_attendance[player_name].wednesday_attendance_count >= BONUS_MIN_DAYS:
-                self.player_attendance[player_name].attendance_point += BONUS_POINT
-            if self.player_attendance[player_name].weekend_attendance_count >= BONUS_MIN_DAYS:
-                self.player_attendance[player_name].attendance_point += BONUS_POINT
+            self.player_attendance[player_name].get_bonus_score()
 
     def get_player_id(self) -> int:
         if len(self.player_attendance.keys()):
@@ -179,9 +196,8 @@ class AttendanceManager():
         print("\nRemoved player")
         print("==============")
         for player_name in self.player_attendance.keys():
-            if (self.player_attendance[player_name].grade_class.get_grade_str() == "NORMAL"
-                    and self.player_attendance[player_name].wednesday_attendance_count == 0
-                    and self.player_attendance[player_name].weekend_attendance_count == 0):
+            check_removed = self.player_attendance[player_name].check_removed_player()
+            if check_removed != "":
                 print(player_name)
 
     def grade_player(self):

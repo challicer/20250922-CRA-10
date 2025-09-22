@@ -1,6 +1,9 @@
 import pytest
 from attendance import AttendanceManager
 from unittest.mock import patch
+import os
+
+
 
 @pytest.fixture
 def default_test_env():
@@ -14,7 +17,8 @@ def test_init_env(default_test_env):
 
 def test_read_text_file(default_test_env):
     test_env = default_test_env
-    raw_data = test_env.read_text_file("./attendance_weekday_500.txt")
+    os.chdir("./mission2/")
+    raw_data = test_env.read_text_file("attendance_weekday_500.txt")
     assert raw_data[:3] == [['Umar', 'monday'], ['Daisy', 'tuesday'], ['Alice', 'tuesday']]
 
 def test_read_text_file_error(default_test_env):
@@ -147,11 +151,13 @@ def test_normal_grade_player(default_test_env, capsys):
 
 def test_read_invalid_file(default_test_env, capsys):
     test_env = default_test_env
+    os.chdir("./")
     test_env.run_attendance_check("./invalid_read.txt")
     assert capsys.readouterr().out == 'NAME : "VALID", POINT : 1, GRADE : NORMAL\n\nRemoved player\n==============\n"VALID"\n'
 
 def test_run_attendance_check(default_test_env):
     test_env = default_test_env
+    os.chdir("./")
     with patch("attendance.AttendanceManager.grade_player") as mock_func:
         test_env.run_attendance_check("./attendance_weekday_500.txt")
         mock_func.assert_called_once()
