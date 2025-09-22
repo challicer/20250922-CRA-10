@@ -53,13 +53,12 @@ def input2(w, wk):
 def input_file():
     try:
         with open("attendance_weekday_500.txt", encoding='utf-8') as f:
-            for _ in range(500):
-                line = f.readline()
-                if not line:
-                    break
-                parts = line.strip().split()
-                if len(parts) == 2:
-                    input2(parts[0], parts[1])
+            lines = f.readlines()
+            user_attendance_data = [line.strip().split() for line in lines]
+            for user_data in user_attendance_data:
+                if len(user_data) != 2:
+                    continue
+                input2(user_data[0], user_data[1])
 
         for i in range(1, id_cnt + 1):
             if dat[i][2] > 9:
